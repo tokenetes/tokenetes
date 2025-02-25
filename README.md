@@ -12,3 +12,6 @@ For detailed documentation and setup guides of tokenetes please visit tokenetes 
 
 ## Contribute to Tokenetes
 Contributions to the project are welcome, including feature enhancements, bug fixes, and documentation improvements.
+
+## Code of Conduct
+Note that this GitHub organization and all repositories in this organization follows the [CNCF Code-of-Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md).
