@@ -1,5 +1,5 @@
 # First stage: build environment
-FROM --platform=$BUILDPLATFORM golang:1.22.0 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.24.1 AS builder
 ARG TARGETARCH
 WORKDIR /app
 COPY go.mod go.sum ./
