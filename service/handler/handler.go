@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/tokenetes/tokenetes/pkg/common"
@@ -135,10 +136,13 @@ func (h *Handlers) TokenEndpointHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		h.Logger.Error("Error generating txn token.", zap.Error(err))
 
-		switch err {
-		case tokeneteserrors.ErrParsingSubjectToken, tokeneteserrors.ErrInvalidSubjectTokenClaims, tokeneteserrors.ErrUnsupportedTokenType, tokeneteserrors.ErrSubjectFieldNotFound:
+		switch {
+		case errors.Is(err, tokeneteserrors.ErrParsingSubjectToken),
+			errors.Is(err, tokeneteserrors.ErrInvalidSubjectTokenClaims),
+			errors.Is(err, tokeneteserrors.ErrUnsupportedTokenType),
+			errors.Is(err, tokeneteserrors.ErrSubjectFieldNotFound):
 			http.Error(w, err.Error(), http.StatusBadRequest)
-		case tokeneteserrors.ErrAccessDenied:
+		case errors.Is(err, tokeneteserrors.ErrAccessDenied):
 			http.Error(w, err.Error(), http.StatusForbidden)
 		default:
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

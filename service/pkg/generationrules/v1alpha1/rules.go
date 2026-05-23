@@ -14,6 +14,7 @@ import (
 	"github.com/tokenetes/tokenetes/pkg/common"
 	"github.com/tokenetes/tokenetes/pkg/logging"
 	"github.com/tokenetes/tokenetes/pkg/subjecttokenhandler"
+	"github.com/tokenetes/tokenetes/pkg/tokeneteserrors"
 	"github.com/tokenetes/tokenetes/utils"
 
 	"errors"
@@ -27,6 +28,8 @@ type TokenetesConfigToken struct {
 	Issuer   string `json:"issuer"`
 	Audience string `json:"audience"`
 	LifeTime string `json:"lifeTime"`
+	// Sub is a literal or `${subjectToken.<gjsonPath>}` expression; see README.
+	Sub string `json:"sub"`
 }
 
 type TokenetesConfigGenerationRule struct {
@@ -299,6 +302,54 @@ func (gri *GenerationRulesImp) GetAudience() string {
 	defer gri.mu.RUnlock()
 
 	return gri.generationRules.TokenetesConfigGenerationRule.Token.Audience
+}
+
+func (gri *GenerationRulesImp) GetSub() string {
+	gri.mu.RLock()
+	defer gri.mu.RUnlock()
+
+	if gri.generationRules.TokenetesConfigGenerationRule == nil ||
+		gri.generationRules.TokenetesConfigGenerationRule.Token == nil {
+		return ""
+	}
+
+	return gri.generationRules.TokenetesConfigGenerationRule.Token.Sub
+}
+
+// ResolveSub resolves the configured `token.sub` expression against the verified subject token claims.
+func (gri *GenerationRulesImp) ResolveSub(claims interface{}) (interface{}, error) {
+	subExpr := gri.GetSub()
+	if subExpr == "" {
+		return nil, errors.New("`sub` is not configured in TokenetesConfig.token")
+	}
+
+	if !strings.HasPrefix(subExpr, "${") || !strings.HasSuffix(subExpr, "}") {
+		return subExpr, nil
+	}
+
+	expr := strings.TrimSuffix(strings.TrimPrefix(subExpr, "${"), "}")
+
+	const prefix = "subjectToken."
+	if !strings.HasPrefix(expr, prefix) {
+		return nil, fmt.Errorf("invalid sub expression %q: must be a literal or start with `${subjectToken.`", subExpr)
+	}
+
+	path := strings.TrimPrefix(expr, prefix)
+	if path == "" {
+		return nil, fmt.Errorf("invalid sub expression %q: missing claim path after `subjectToken.`", subExpr)
+	}
+
+	claimsJSON, err := json.Marshal(claims)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal subject token claims: %w", err)
+	}
+
+	result := gjson.GetBytes(claimsJSON, path)
+	if !result.Exists() {
+		return nil, fmt.Errorf("%w: path %q (from sub expression %q)", tokeneteserrors.ErrSubjectFieldNotFound, path, subExpr)
+	}
+
+	return result.Value(), nil
 }
 
 func (gri *GenerationRulesImp) GetTokenLifetime() (time.Duration, error) {

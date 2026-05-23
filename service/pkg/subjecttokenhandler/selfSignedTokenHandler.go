@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/tokenetes/tokenetes/pkg/subjectidentifier"
 	"github.com/tokenetes/tokenetes/pkg/tokeneteserrors"
 	"go.uber.org/zap"
 )
@@ -77,20 +76,6 @@ func (s *SelfSignedTokenHandler) VerifyAndParse(ctx context.Context, token strin
 
 		return nil, tokeneteserrors.ErrInvalidSubjectTokenClaims
 	}
-}
-
-func (o *SelfSignedTokenHandler) ExtractSubject(claims interface{}) (subjectidentifier.Identifier, error) {
-	mapClaims, ok := claims.(jwt.MapClaims)
-	if !ok {
-		return nil, tokeneteserrors.ErrInvalidSubjectTokenClaims
-	}
-
-	subValue, ok := mapClaims["sub"]
-	if !ok {
-		return nil, tokeneteserrors.ErrSubjectFieldNotFound
-	}
-
-	return subValue, nil
 }
 
 func fetchJWKS(jwksEndpointURL string) (jwk.Set, error) {

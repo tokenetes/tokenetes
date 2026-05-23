@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/tokenetes/tokenetes/pkg/common"
-	"github.com/tokenetes/tokenetes/pkg/subjectidentifier"
 	"go.uber.org/zap"
 )
 
@@ -16,9 +15,8 @@ type SubjectTokens struct {
 }
 
 type OIDCToken struct {
-	ClientID     string `json:"clientId"`
-	ProviderURL  string `json:"providerURL"`
-	SubjectField string `json:"subjectField"`
+	ClientID    string `json:"clientId"`
+	ProviderURL string `json:"providerURL"`
 }
 
 type SelfSignedToken struct {
@@ -26,9 +24,9 @@ type SelfSignedToken struct {
 	JWKSSEndpoint string `json:"jwksEndpoint"`
 }
 
+// TokenHandler verifies a subject token and returns its parsed claims.
 type TokenHandler interface {
 	VerifyAndParse(ctx context.Context, token string) (interface{}, error)
-	ExtractSubject(claims interface{}) (subjectidentifier.Identifier, error)
 }
 
 type TokenHandlers struct {

@@ -56,9 +56,9 @@ func (s *Service) GenerateTxnToken(ctx context.Context, txnTokenRequest *common.
 		return &TokenResponse{}, err
 	}
 
-	subject, err := subjectTokenHandler.ExtractSubject(subjectTokenClaims)
+	subject, err := s.generationRules.ResolveSub(subjectTokenClaims)
 	if err != nil {
-		s.logger.Error("Failed to extract subject.", zap.Error(err))
+		s.logger.Error("Failed to resolve sub from subject token claims.", zap.Error(err))
 
 		return &TokenResponse{}, err
 	}
