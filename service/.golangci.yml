@@ -1,5 +1,7 @@
+version: "2"
+
 linters:
-  disable-all: true
+  default: none
   enable:
     - asciicheck
     - decorder
@@ -7,8 +9,6 @@ linters:
     - durationcheck
     - forcetypeassert
     - godot
-    - gofmt
-    - gosimple
     - ineffassign
     - makezero
     - misspell
@@ -16,8 +16,13 @@ linters:
     - nlreturn
     - promlinter
     - reassign
+    - staticcheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
     - wsl
+
+formatters:
+  enable:
+    - gofmt
