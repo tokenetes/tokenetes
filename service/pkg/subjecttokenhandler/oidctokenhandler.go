@@ -7,7 +7,6 @@ import (
 
 	"github.com/coreos/go-oidc"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/tokenetes/tokenetes/pkg/subjectidentifier"
 	"github.com/tokenetes/tokenetes/pkg/tokeneteserrors"
 	"go.uber.org/zap"
 )
@@ -15,8 +14,7 @@ import (
 const OIDC_PROVIDER_INITILIZATION_MAX_RETRIES = 5
 
 type OIDCTokenHandler struct {
-	subjectField string
-	verifier     *oidc.IDTokenVerifier
+	verifier *oidc.IDTokenVerifier
 }
 
 func NewOIDCTokenHandler(oidcConfig *OIDCToken, logger *zap.Logger) *OIDCTokenHandler {
@@ -26,8 +24,7 @@ func NewOIDCTokenHandler(oidcConfig *OIDCToken, logger *zap.Logger) *OIDCTokenHa
 		ClientID: oidcConfig.ClientID,
 	})
 
-	return &OIDCTokenHandler{subjectField: oidcConfig.SubjectField,
-		verifier: verifier}
+	return &OIDCTokenHandler{verifier: verifier}
 }
 
 func (o *OIDCTokenHandler) VerifyAndParse(ctx context.Context, token string) (interface{}, error) {
@@ -46,20 +43,6 @@ func (o *OIDCTokenHandler) VerifyAndParse(ctx context.Context, token string) (in
 	}
 
 	return claims, nil
-}
-
-func (o *OIDCTokenHandler) ExtractSubject(claims interface{}) (subjectidentifier.Identifier, error) {
-	mapClaims, ok := claims.(jwt.MapClaims)
-	if !ok {
-		return nil, tokeneteserrors.ErrInvalidSubjectTokenClaims
-	}
-
-	subjectValue, ok := mapClaims[o.subjectField].(string)
-	if !ok {
-		return nil, tokeneteserrors.ErrSubjectFieldNotFound
-	}
-
-	return subjectidentifier.NewIdentifier(o.subjectField, subjectValue)
 }
 
 func getOIDCProvider(oidcIssuer string, logger *zap.Logger) *oidc.Provider {
