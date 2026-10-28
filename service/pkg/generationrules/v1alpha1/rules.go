@@ -326,7 +326,12 @@ func (gri *GenerationRulesImp) EvaluateAccess(txnTokenRequest *common.TokenReque
 		return false, fmt.Errorf("error matching generation rule for %s path and %s method: %w", txnTokenRequest.RequestDetails.Path, string(txnTokenRequest.RequestDetails.Method), err)
 	}
 
-	return gri.accessevaluator.Evaluate(generationTraTRule.AccessEvaluation.Map, subjectTokenClaims, txnTokenRequest.RequestDetails, txnTokenRequest.RequestContext, pathParameter)
+	var accessEvaluationMap map[string]interface{}
+	if generationTraTRule.AccessEvaluation != nil {
+		accessEvaluationMap = generationTraTRule.AccessEvaluation.Map
+	}
+
+	return gri.accessevaluator.Evaluate(accessEvaluationMap, subjectTokenClaims, txnTokenRequest.RequestDetails, txnTokenRequest.RequestContext, pathParameter)
 }
 
 func (gri *GenerationRulesImp) GetSubjectTokenHandler(tokenType common.TokenType) (subjecttokenhandler.TokenHandler, error) {
